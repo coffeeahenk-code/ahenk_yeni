@@ -17,6 +17,7 @@ class TemelAyarlar:
     GROQ_API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
     AI_TIMEOUT_SECONDS = int(os.getenv("AI_TIMEOUT_SECONDS", "25"))
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+    LEADS_API_KEY = os.getenv("LEADS_API_KEY", "").strip()
     MAX_CONTENT_LENGTH = 1 * 1024 * 1024
     JSON_SORT_KEYS = False
     BUSINESS_CONTEXT = """Sen Ahenk Coffee markasının nazik, bilgili ve samimi kahve rehberisin.
