@@ -73,3 +73,23 @@ def tum_kayitlari_getir(database_path, arama=""):
         raise VeritabaniHatasi("DB-006", "Kayıtlar şu anda listelenemiyor.", f"Kayıt listeleme hatası: {exc}", 500) from exc
     finally:
         baglanti.close()
+
+def iletisim_kaydi_sil(database_path, kayit_id):
+    baglanti = baglanti_al(database_path)
+    try:
+        cursor = baglanti.execute(
+            "DELETE FROM iletisim_kayitlari WHERE id = ?",
+            (kayit_id,)
+        )
+        baglanti.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as exc:
+        baglanti.rollback()
+        raise VeritabaniHatasi(
+            "DB-007",
+            "Kayıt silinemedi.",
+            f"Kayıt silme hatası: {exc}",
+            500
+        ) from exc
+    finally:
+        baglanti.close()
