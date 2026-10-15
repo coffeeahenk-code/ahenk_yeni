@@ -93,3 +93,36 @@ def iletisim_kaydi_sil(database_path, kayit_id):
         ) from exc
     finally:
         baglanti.close()
+
+
+def rezervasyon_kaydi_ekle(database_path, isim, telefon, eposta, kisi_sayisi, notlar):
+    baglanti = baglanti_al(database_path)
+    try:
+        cursor = baglanti.execute(
+            """INSERT INTO rezervasyon_kayitlari
+            (isim, telefon, eposta, kisi_sayisi, notlar, olusturulma_tarihi)
+            VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                isim, telefon, eposta, kisi_sayisi, notlar,
+                datetime.now(timezone.utc).isoformat(timespec="seconds")
+            )
+        )
+        baglanti.commit()
+        return cursor.lastrowid
+    finally:
+        baglanti.close()
+
+
+def rezervasyonlari_getir(database_path):
+    baglanti = baglanti_al(database_path)
+    try:
+        rows = baglanti.execute(
+            """SELECT id, isim, telefon, eposta,
+                      kisi_sayisi, notlar, olusturulma_tarihi
+               FROM rezervasyon_kayitlari
+               ORDER BY id DESC LIMIT 500"""
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        baglanti.close()
+
