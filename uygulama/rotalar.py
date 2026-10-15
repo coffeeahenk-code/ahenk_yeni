@@ -5,6 +5,10 @@ from uygulama.database import iletisim_kaydi_ekle, tum_kayitlari_getir
 from uygulama.hatalar import DogrulamaHatasi
 from uygulama.servisler.yapay_zeka_servisi import yapay_zeka_servisi
 
+import hmac
+from uygulama.database import iletisim_kaydi_sil
+
+
 sayfa_arayuzu = Blueprint("sayfalar", __name__)
 api_arayuzu = Blueprint("api", __name__)
 
