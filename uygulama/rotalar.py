@@ -90,3 +90,58 @@ def iletisim_gonder():
         raise DogrulamaHatasi("KVKK-001", "İletişim talebiniz için aydınlatma metnini okuyup onay kutusunu işaretleyin.", "Açık rıza/izin kutusu işaretlenmedi.", 400)
     kayit_id = iletisim_kaydi_ekle(current_app.config["DATABASE_PATH"], isim, eposta, ulke, mesaj, izin)
     return jsonify({"basari": True, "mesaj": "Teşekkürler! Ahenk'e bıraktığınız mesaj kaydedildi.", "kayit_id": kayit_id}), 201
+
+
+def yonetici_api_yetkili():
+    beklenen = current_app.config.get("LEADS_API_KEY", "")
+    gelen = request.headers.get("X-API-Key", "")
+
+    return bool(
+        beklenen
+        and hmac.compare_digest(beklenen, gelen)
+    )
+
+
+@api_arayuzu.get("/kayitlar")
+def kayitlari_listele():
+    if not yonetici_api_yetkili():
+        return jsonify({
+            "basari": False,
+            "hata": "Yetkisiz erişim"
+        }), 401
+
+    kayitlar = tum_kayitlari_getir(
+        current_app.config["DATABASE_PATH"]
+    )
+
+    return jsonify({
+        "basari": True,
+        "kayitlar": kayitlar
+    })
+
+
+@api_arayuzu.delete("/kayitlar/<int:kayit_id>")
+def kayit_sil(kayit_id):
+    if not yonetici_api_yetkili():
+        return jsonify({
+            "basari": False,
+            "hata": "Yetkisiz erişim"
+        }), 401
+
+    silindi = iletisim_kaydi_sil(
+        current_app.config["DATABASE_PATH"],
+        kayit_id
+    )
+
+    if not silindi:
+        return jsonify({
+            "basari": False,
+            "hata": "Kayıt bulunamadı"
+        }), 404
+
+    return jsonify({
+        "basari": True,
+        "mesaj": "Kayıt silindi"
+    })
+
+
