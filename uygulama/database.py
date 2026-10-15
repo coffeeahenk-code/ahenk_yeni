@@ -17,24 +17,49 @@ def baglanti_al(database_path):
         raise VeritabaniHatasi("DB-002", "Kayıt sistemine şu anda ulaşılamıyor.", f"Veritabanı bağlantı hatası: {exc}", 500) from exc
 
 
+
 def veritabani_baslat(database_path):
     baglanti = baglanti_al(database_path)
+
     try:
-        baglanti.execute("""CREATE TABLE IF NOT EXISTS iletisim_kayitlari (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            isim TEXT NOT NULL,
-            eposta TEXT NOT NULL,
-            ulke TEXT NOT NULL DEFAULT '',
-            mesaj TEXT NOT NULL DEFAULT '',
-            izin_verildi INTEGER NOT NULL DEFAULT 0,
-            olusturulma_tarihi TEXT NOT NULL
-        )""")
+        baglanti.execute("""
+            CREATE TABLE IF NOT EXISTS iletisim_kayitlari (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                isim TEXT NOT NULL,
+                eposta TEXT NOT NULL,
+                ulke TEXT NOT NULL DEFAULT '',
+                mesaj TEXT NOT NULL DEFAULT '',
+                izin_verildi INTEGER NOT NULL DEFAULT 0,
+                olusturulma_tarihi TEXT NOT NULL
+            )
+        """)
+
+        baglanti.execute("""
+            CREATE TABLE IF NOT EXISTS rezervasyon_kayitlari (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                isim TEXT NOT NULL,
+                telefon TEXT NOT NULL,
+                eposta TEXT NOT NULL,
+                kisi_sayisi INTEGER NOT NULL,
+                notlar TEXT NOT NULL DEFAULT '',
+                olusturulma_tarihi TEXT NOT NULL
+            )
+        """)
+
         baglanti.commit()
+
     except sqlite3.Error as exc:
         baglanti.rollback()
-        raise VeritabaniHatasi("DB-003", "Veritabanı hazırlanamadı.", f"Tablo oluşturma hatası: {exc}", 500) from exc
+        raise VeritabaniHatasi(
+            "DB-003",
+            "Veritabanı hazırlanamadı.",
+            f"Tablo oluşturma hatası: {exc}",
+            500
+        ) from exc
+
     finally:
         baglanti.close()
+
 
 
 def iletisim_kaydi_ekle(database_path, isim, eposta, ulke, mesaj, izin_verildi):
