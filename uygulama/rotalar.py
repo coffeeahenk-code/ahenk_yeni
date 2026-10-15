@@ -4,6 +4,7 @@ from flask import Blueprint, current_app, jsonify, render_template, request, ses
 from uygulama.database import iletisim_kaydi_ekle, tum_kayitlari_getir
 from uygulama.hatalar import DogrulamaHatasi
 from uygulama.servisler.yapay_zeka_servisi import yapay_zeka_servisi
+from uygulama.database import rezervasyon_kaydi_ekle, rezervasyonlari_getir
 
 import hmac
 from uygulama.database import iletisim_kaydi_sil
@@ -142,6 +143,59 @@ def kayit_sil(kayit_id):
     return jsonify({
         "basari": True,
         "mesaj": "Kayıt silindi"
+    })
+
+@api_arayuzu.post("/rezervasyon")
+def rezervasyon_olustur():
+    veri = request.get_json(silent=True) or {}
+
+    isim = str(veri.get("isim") or "").strip()
+    telefon = str(veri.get("telefon") or "").strip()
+    eposta = str(veri.get("eposta") or "").strip()
+    notlar = str(veri.get("notlar") or "").strip()
+
+    try:
+        kisi_sayisi = int(veri.get("kisi_sayisi"))
+    except (TypeError, ValueError):
+        return jsonify({"basari": False, "hata": "Kişi sayısı geçersiz."}), 400
+
+    if not isim or not telefon or not eposta or kisi_sayisi < 1:
+        return jsonify({"basari": False, "hata": "Zorunlu alanlar eksik."}), 400
+
+    if len(isim) > 100 or len(telefon) > 20 or len(notlar) > 1500:
+        return jsonify({"basari": False, "hata": "Alan uzunlukları geçersiz."}), 400
+
+    if len(eposta) > 254 or not re.fullmatch(
+        r"[^\s@]+@[^\s@]+\.[^\s@]+", eposta
+    ):
+        return jsonify({"basari": False, "hata": "E-posta geçersiz."}), 400
+
+    kayit_id = rezervasyon_kaydi_ekle(
+        current_app.config["DATABASE_PATH"],
+        isim, telefon, eposta, kisi_sayisi, notlar
+    )
+
+    return jsonify({
+        "basari": True,
+        "kayit_id": kayit_id
+    }), 201
+
+
+@api_arayuzu.get("/rezervasyonlar")
+def rezervasyonlari_listele():
+    if not yonetici_api_yetkili():
+        return jsonify({
+            "basari": False,
+            "hata": "Yetkisiz erişim"
+        }), 401
+
+    kayitlar = rezervasyonlari_getir(
+        current_app.config["DATABASE_PATH"]
+    )
+
+    return jsonify({
+        "basari": True,
+        "kayitlar": kayitlar
     })
 
 
