@@ -63,16 +63,7 @@ def uygulama_olustur(ayar_adi=None):
     uygulama.config.from_object(secilen)
 
     # Wix formunun Render API'ye bağlanması
-    CORS(
-        uygulama,
-        resources={
-            r"/api/rezervasyon": {
-                "origins": "*",
-                "methods": ["POST", "OPTIONS"],
-                "allow_headers": ["Content-Type"]
-            }
-        }
-    )
+    CORS(uygulama)
 
     _loglama_kur(uygulama)
 
